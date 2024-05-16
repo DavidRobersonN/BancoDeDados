@@ -838,3 +838,879 @@ ALTER TABLE TELEFONE ADD CONSTRAINT FK_CLIENTE_TELEFONE
 FOREIGN KEY(ID_CLIENTE) REFERENCES CLIENTE(IDCLIENTE);
 
 SHOW CREATE TABLE TELEFONE;
+
+
+
+/* DICIONARIO DE DADOS */
+
+SHOW DATABASES;
+
+USE INFORMATION_SCHEMA;
+
+STATUS
+
+SHOW TABLES;
+
+DESC TABLE_CONSTRAINTS;
+
+SELECT CONSTRAINT_SCHEMA AS "BANCO",
+	   TABLE_NAME AS "TABELA",
+	   CONSTRAINT_NAME AS "NOME REGRA",
+	   CONSTRAINT_TYPE AS "TIPO"
+	   FROM TABLE_CONSTRAINTS
+	   WHERE CONSTRAINT_SCHEMA = 'PROJETO';
+
+
+/*
+	APAGANDO CONSTRAINTS
+*/
+
+USE COMERCIO;
+
+ALTER TABLE TELEFONE
+DROP FOREIGN KEY FK_CLIENTE_TELEFONE;
+
+ALTER TABLE  TELEFONE ADD CONSTRAINT FK_CLIENTE_TELEFONE
+FOREIGN KEY(ID_CLIENTE) REFERENCES CLIENTE(IDCLIENTE);
+
+/*
+	REVISANDO RELACIONAMENTOS
+*/
+
+-- A CHAVE ESTRANGEIRA SEMPRE FICARA NA TABELA MAIS FRACA, ISSO DEPENDE DA REGRA DE NEGOCIO
+
+-- EM RELACIONAMENTOS 1 PARA N, A CHAVE ESTRANGEIRA SEMPRE FICARA NA  TABELA N
+
+-- EM RELACIONAMENTOS N PARA N,   PRECISAREMOS DE UMA TABELA ASSOCIATIVA, ONDE FICARA A CHAVE ASSOCIATIVA
+
+
+/*
+	EXERCICIOS DE FIXAÇÃO
+*/
+
+-- 1 CRIE UMA BANCO DE DADOS CHAMADO PROJETO E CONECTE-SE AO BANCO
+-- 2 FAÇA A SEGUINTE MODELAGEM:
+--        
+-- SR JOSE QUER MODERNIZAR A SUA OFICINA, E POR ENQUANTO, 
+--CADASTRAR OS CARROS QUE ENTRAM PARA REALIZAR
+-- SERVIÇOES E OS SEUS RESPECTIVOS DONOS.
+
+--		 SR.JOSE MENCIONOU QUE CADA CLIENTE POSSUI APENAS UM CARRO.
+-- UM CARRO POSSUI UMA MARCA
+-- 		SR.JOSE TAMBEM QUER SABER AS CORES DOS CARROS PARA TER IDEIA DE QUAL TINTA COMPRAR, E INFORMA QUE
+-- UM CARRO PODE TER MAIS DE UMA COR
+--		SR.JOSE NESCESSITA ARMAZENAR OS TELEFONES DOS CLIENTES, MAS NAO QUER QUE ELES SEJA OBRIGATORIOS.
+
+
+
+-- 1 CRIE UMA BANCO DE DADOS CHAMADO PROJETO E CONECTE-SE AO BANCO
+
+CREATE DATABASE OFICINA;
+
+USE OFICINA;
+
+CREATE TABLE CLIENTE(
+	IDCLIENTE INT PRIMARY KEY AUTO_INCREMENT,
+	NOME VARCHAR(30) NOT NULL,
+	ID_CARRO INT UNIQUE
+);
+
+CREATE TABLE TELEFONE(
+	IDTELEFONE INT PRIMARY KEY AUTO_INCREMENT ,
+	TIPO ENUM('CEL', 'RES', 'COM') NOT NULL,
+	NUMERO VARCHAR(10) NOT NULL,
+	ID_CLIENTE INT UNIQUE
+);
+
+CREATE TABLE CARRO(
+	IDCARRO INT PRIMARY KEY AUTO_INCREMENT,
+	MODELO VARCHAR(30) NOT NULL,
+	PLACA VARCHAR(30) NOT NULL UNIQUE,
+	ID_COR_CARRO INT,
+	ID_MARCA_CARRO INT
+);
+
+CREATE TABLE COR(
+	IDCOR INT PRIMARY KEY AUTO_INCREMENT,
+	COR VARCHAR(30) UNIQUE
+);
+
+CREATE TABLE COR_CARRO(
+	ID_COR INT,
+	ID_CARRO INT,
+	PRIMARY KEY(ID_COR,ID_CARRO)
+);
+
+CREATE TABLE MARCA_CARRO(
+	IDMARCA_CARRO INT PRIMARY KEY AUTO_INCREMENT,
+	MARCA VARCHAR(30) UNIQUE
+);
+
+ALTER TABLE TELEFONE 
+ADD CONSTRAINT FK_TELEFONE_CLIENTE
+FOREIGN KEY(ID_CLIENTE)
+REFERENCES CLIENTE(IDCLIENTE);
+
+ALTER TABLE CLIENTE
+ADD CONSTRAINT FK_CLIENTE_CARRO
+FOREIGN KEY(ID_CARRO)
+REFERENCES CARRO(IDCARRO);          
+
+ALTER TABLE CARRO
+ADD CONSTRAINT FK_CARRO_MARCA_CARRO
+FOREIGN KEY(ID_MARCA_CARRO)
+REFERENCES MARCA_CARRO(IDMARCA_CARRO);
+
+ALTER TABLE COR_CARRO
+ADD CONSTRAINT FK_COR_CARRO_CARRO
+FOREIGN KEY(ID_CARRO)
+REFERENCES CARRO(IDCARRO);
+
+ALTER TABLE COR_CARRO
+ADD CONSTRAINT FK_COR_CARRO_COR
+FOREIGN KEY(ID_COR)
+REFERENCES COR(IDCOR);
+
+-- ADICIONANDO MARCA DE CARRO
++---------------+-------------+------+-----+---------+----------------+
+| Field         | Type        | Null | Key | Default | Extra          |
++---------------+-------------+------+-----+---------+----------------+
+| IDMARCA_CARRO | int(11)     | NO   | PRI | NULL    | auto_increment |
+| MARCA         | varchar(30) | YES  | UNI | NULL    |                |
++---------------+-------------+------+-----+---------+----------------+
+INSERT INTO MARCA_CARRO VALUES(NULL, 'CHEVROLET GM');
+
+--ADICIONANDO COR
++-------+-------------+------+-----+---------+----------------+
+| Field | Type        | Null | Key | Default | Extra          |
++-------+-------------+------+-----+---------+----------------+
+| IDCOR | int(11)     | NO   | PRI | NULL    | auto_increment |
+| COR   | varchar(30) | YES  | UNI | NULL    |                |
++-------+-------------+------+-----+---------+----------------+
+INSERT INTO COR VALUES(NULL, 'PRETO');
+
+
+--ADICIONANDO CARRO
++----------------+-------------+------+-----+---------+----------------+
+| Field          | Type        | Null | Key | Default | Extra          |
++----------------+-------------+------+-----+---------+----------------+
+| IDCARRO        | int(11)     | NO   | PRI | NULL    | auto_increment |
+| MODELO         | varchar(30) | NO   |     | NULL    |                |
+| PLACA          | varchar(30) | NO   | UNI | NULL    |                |
+| ID_COR_CARRO   | int(11)     | YES  |     | NULL    |                |
+| ID_MARCA_CARRO | int(11)     | YES  | MUL | NULL    |                |
++----------------+-------------+------+-----+---------+----------------+
++---------------+--------------+
+| IDMARCA_CARRO | MARCA        |
++---------------+--------------+
+|             1 | CHEVROLET GM |
++---------------+--------------+
+INSERT INTO CARRO VALUES(NULL, 'OPALA', 'SNX 0102', 1, 1);
+
+
+--ADICIONANDO COR DE CARRO
++----------+---------+------+-----+---------+-------+
+| Field    | Type    | Null | Key | Default | Extra |
++----------+---------+------+-----+---------+-------+
+| ID_COR   | int(11) | NO   | PRI | NULL    |       |
+| ID_CARRO | int(11) | NO   | PRI | NULL    |       |
++----------+---------+------+-----+---------+-------+
+INSERT INTO COR_CARRO VALUES(1, 2);
+
+
+
+--ADICIONANDO CLIENTE
+mysql> DESC CLIENTE;
++-----------+-------------+------+-----+---------+----------------+
+| Field     | Type        | Null | Key | Default | Extra          |
++-----------+-------------+------+-----+---------+----------------+
+| IDCLIENTE | int(11)     | NO   | PRI | NULL    | auto_increment |
+| NOME      | varchar(30) | NO   |     | NULL    |                |
+| ID_CARRO  | int(11)     | YES  | UNI | NULL    |                |
++-----------+-------------+------+-----+---------+----------------+
+INSERT INTO CLIENTE VALUES(NULL, 'DAVID', 2);
+
+
+--ADICIONANDO TELEFONE DO CLIENTE
+mysql> DESC TELEFONE;
++------------+-------------------------+------+-----+---------+----------------+
+| Field      | Type                    | Null | Key | Default | Extra          |
++------------+-------------------------+------+-----+---------+----------------+
+| IDTELEFONE | int(11)                 | NO   | PRI | NULL    | auto_increment |
+| TIPO       | enum('CEL','RES','COM') | NO   |     | NULL    |                |
+| NUMERO     | varchar(10)             | NO   |     | NULL    |                |
+| ID_CLIENTE | int(11)                 | YES  | UNI | NULL    |                |
++------------+-------------------------+------+-----+---------+----------------+
+mysql> SELECT * FROM CLIENTE;
++-----------+-------+----------+
+| IDCLIENTE | NOME  | ID_CARRO |
++-----------+-------+----------+
+|         2 | DAVID |        2 |
++-----------+-------+----------+
+INSERT INTO TELEFONE VALUES(NULL, 'CEL', '959587373', 2);
+
+-- TESTANDO AS REGRAS DE NEGOCIOS DA OFICINA
+
+
+
+--SR.JOSE MENCIONOU QUE CADA CLIENTE POSSUI APENAS UM CARRO
+-- TENTAR COLOCAR MAIS DE UM CARRO PARA UM CLIENTE:
+
+mysql> SELECT * FROM CARRO; -- VERIFICANDO OS CARROS CADASTRADOS NO BANCO DE DADOS
++---------+--------+----------+--------------+----------------+
+| IDCARRO | MODELO | PLACA    | ID_COR_CARRO | ID_MARCA_CARRO |
++---------+--------+----------+--------------+----------------+
+|       2 | ONIX   | FBW 0102 |            1 |              1 |
+|       3 | OPALA  | SNX 0102 |            1 |              1 |
++---------+--------+----------+--------------+----------------+
+-- não há campos para atribuir mais de um carro para cada dono
+
+
+
+-- -- UM CARRO POSSUI UMA MARCA
+--nao há campos para  adicionar mais de uma marca para um carro
+
+
+
+--SR.JOSE TAMBEM QUER SABER AS CORES DOS CARROS PARA TER IDEIA DE QUAL TINTA COMPRAR
+
+
+-- select de todos os dados do cliente
++----------------+-------------+------+-----+---------+----------------+
+| Field          | Type        | Null | Key | Default | Extra          |
++----------------+-------------+------+-----+---------+----------------+
+| IDCARRO        | int(11)     | NO   | PRI | NULL    | auto_increment |
+| MODELO         | varchar(30) | NO   |     | NULL    |                |
+| PLACA          | varchar(30) | NO   | UNI | NULL    |                |
+| ID_COR_CARRO   | int(11)     | YES  |     | NULL    |                |
+| ID_MARCA_CARRO | int(11)     | YES  | MUL | NULL    |                |
++----------------+-------------+------+-----+---------+----------------+
+
+--VERIFICANDO OS CARROS CADASTRADOS
+mysql> SELECT * FROM CARRO;
++---------+--------+----------+--------------+----------------+
+| IDCARRO | MODELO | PLACA    | ID_COR_CARRO | ID_MARCA_CARRO |
++---------+--------+----------+--------------+----------------+
+|       2 | ONIX   | FBW 0102 |            1 |              1 |
+|       3 | OPALA  | SNX 0102 |            1 |              1 |
++---------+--------+----------+--------------+----------------+
+
+-- VERIFICANDO CLIENTES
+mysql> SELECT * FROM CLIENTE;
++-----------+-------+----------+
+| IDCLIENTE | NOME  | ID_CARRO |
++-----------+-------+----------+
+|         2 | DAVID |        2 |
++-----------+-------+----------+
+
+-- DESC NA TABELA COR
++-------+-------------+------+-----+---------+----------------+
+| Field | Type        | Null | Key | Default | Extra          |
++-------+-------------+------+-----+---------+----------------+
+| IDCOR | int(11)     | NO   | PRI | NULL    | auto_increment |
+| COR   | varchar(30) | YES  | UNI | NULL    |                |
++-------+-------------+------+-----+---------+----------------+
+
+-- DESC NA TABELA COR_CARRO
++----------+---------+------+-----+---------+-------+
+| Field    | Type    | Null | Key | Default | Extra |
++----------+---------+------+-----+---------+-------+
+| ID_COR   | int(11) | NO   | PRI | NULL    |       |
+| ID_CARRO | int(11) | NO   | PRI | NULL    |       |
++----------+---------+------+-----+---------+-------+
+
+SELECT IDCLIENTE,
+	   C.NOME,
+	   T.TIPO,
+	   T.NUMERO,
+	   CA.MODELO,
+	   CA.PLACA,
+	   CR.COR
+FROM CLIENTE C
+INNER JOIN TELEFONE T
+ON C.IDCLIENTE = T.ID_CLIENTE
+INNER JOIN CARRO CA
+ON C.IDCLIENTE = CA.IDCARRO
+INNER JOIN COR_CARRO C_C
+ON C.IDCLIENTE = C_C.ID_CARRO
+INNER JOIN COR CR
+ON CR.IDCOR = C_C.ID_COR; 
+
++-----------+-------+------+-----------+--------+----------+-------+
+| IDCLIENTE | NOME  | TIPO | NUMERO    | MODELO | PLACA    | COR   |
++-----------+-------+------+-----------+--------+----------+-------+
+|         2 | DAVID | CEL  | 959587373 | ONIX   | FBW 0102 | PRETO |
++-----------+-------+------+-----------+--------+----------+-------+
+
+
+-- UM CARRO PODE TER MAIS DE UMA COR
+--ACRESCENTAR MAIS UMA COR AO CARRO DE ID 2, ONIX DE DAVID
+
+-- INSERINDO MAIS UMA COR DE TINTA
+mysql> DESC COR;
++-------+-------------+------+-----+---------+----------------+
+| Field | Type        | Null | Key | Default | Extra          |
++-------+-------------+------+-----+---------+----------------+
+| IDCOR | int(11)     | NO   | PRI | NULL    | auto_increment |
+| COR   | varchar(30) | YES  | UNI | NULL    |                |
++-------+-------------+------+-----+---------+----------------+
+
+INSERT INTO COR VALUES(NULL, 'AMARELO');
+
+mysql> DESC COR_CARRO;
++----------+---------+------+-----+---------+-------+
+| Field    | Type    | Null | Key | Default | Extra |
++----------+---------+------+-----+---------+-------+
+| ID_COR   | int(11) | NO   | PRI | NULL    |       |
+| ID_CARRO | int(11) | NO   | PRI | NULL    |       |
++----------+---------+------+-----+---------+-------+
+
+mysql> SELECT * FROM COR;
++-------+---------+
+| IDCOR | COR     |
++-------+---------+
+|     2 | AMARELO |
+|     1 | PRETO   |
++-------+---------+
+
+mysql> SELECT * FROM CARRO;
++---------+--------+----------+--------------+----------------+
+| IDCARRO | MODELO | PLACA    | ID_COR_CARRO | ID_MARCA_CARRO |
++---------+--------+----------+--------------+----------------+
+|       2 | ONIX   | FBW 0102 |            1 |              1 |
+|       3 | OPALA  | SNX 0102 |            1 |              1 |
++---------+--------+----------+--------------+----------------+
+
+INSERT INTO COR_CARRO VALUES(2, 2);
+
+--VERIFICANDO
+
+mysql> SELECT IDCLIENTE,
+    ->    C.NOME,
+    ->    T.TIPO,
+    ->    T.NUMERO,
+    ->    CA.MODELO,
+    ->    CA.PLACA,
+    ->    CR.COR
+    -> FROM CLIENTE C
+    -> INNER JOIN TELEFONE T
+    -> ON C.IDCLIENTE = T.ID_CLIENTE
+    -> INNER JOIN CARRO CA
+    -> ON C.IDCLIENTE = CA.IDCARRO
+    -> INNER JOIN COR_CARRO C_C
+    -> ON C.IDCLIENTE = C_C.ID_CARRO
+    -> INNER JOIN COR CR
+    -> ON CR.IDCOR = C_C.ID_COR;
++-----------+-------+------+-----------+--------+----------+---------+
+| IDCLIENTE | NOME  | TIPO | NUMERO    | MODELO | PLACA    | COR     |
++-----------+-------+------+-----------+--------+----------+---------+
+|         2 | DAVID | CEL  | 959587373 | ONIX   | FBW 0102 | PRETO   |
+|         2 | DAVID | CEL  | 959587373 | ONIX   | FBW 0102 | AMARELO |
++-----------+-------+------+-----------+--------+----------+---------+
+
+-- TENTANDO COLOCAR UM NOVO CLIENTE, COM UM CARRO QUE JÁ TEM DONO:
+
++-----------+-------------+------+-----+---------+----------------+
+| Field     | Type        | Null | Key | Default | Extra          |
++-----------+-------------+------+-----+---------+----------------+
+| IDCLIENTE | int(11)     | NO   | PRI | NULL    | auto_increment |
+| NOME      | varchar(30) | NO   |     | NULL    |                |
+| ID_CARRO  | int(11)     | YES  | UNI | NULL    |                |
++-----------+-------------+------+-----+---------+----------------+
+
+mysql> INSERT INTO CLIENTE VALUES(NULL,'RENATA',2);
+ERROR 1062 (23000): Duplicate entry '2' for key 'ID_CARRO'
+-- NAO FOI POSSIVEL, ESTA CORRETO
+
+/*
+	TRIGGERS
+	TRIGGERS SIGNNIFICA GATILHOS, OU SEJA, EXECUTE ALGUMA COISA APOS O GATILHO
+*/
+/* ESTRUTURA DE UMA TRIGGER */
+
+CREATE TRIGGER NOME
+BEFORE/AFTER INSERT/DELETE/UPDATE ON TABELA
+FOR EACH ROW (PARA CADA LINHA)
+BEGIN -> INICIO
+
+		QUALQUER COMANDO SQL
+
+END -> FIM
+
+
+CREATE DATABASE TRIGGERS;
+
+USE TRIGGERS;
+
+CREATE TABLE USUARIO(
+	IDUSUARIO INT PRIMARY KEY AUTO_INCREMENT,
+	NOME VARCHAR(30),
+	LOGIN VARCHAR(30),
+	SENHA VARCHAR(100)
+);
+
+CREATE TABLE BKP_USUARIO(
+	IDBACKUP INT PRIMARY KEY AUTO_INCREMENT,
+	IDUSUARIO INT,
+	NOME VARCHAR(30),
+	LOGIN VARCHAR(30)
+);
+
+/* CRIANDO A TRIGGER */
+
+DELIMITER $
+
+CREATE TRIGGER BACKUP_USER
+BEFORE DELETE ON USUARIO
+FOR EACH ROW 
+BEGIN
+		
+	INSERT INTO BKP_USUARIO VALUES
+	(NULL,OLD.IDUSUARIO,OLD.NOME,OLD.LOGIN);
+END
+$
+
+INSERT INTO USUARIO VALUES(NULL,'ANDRADE','ANDRADE2009','HEXACAMPEAO')$
+
+DELIMITER ;
+
+
+mysql> SELECT * FROM USUARIO;
++-----------+---------+-------------+-------------+
+| IDUSUARIO | NOME    | LOGIN       | SENHA       |
++-----------+---------+-------------+-------------+
+|         1 | ANDRADE | ANDRADE2009 | HEXACAMPEAO |
++-----------+---------+-------------+-------------+
+
+
+DELETE FROM USUARIO WHERE IDUSUARIO = 1;
+
+
+mysql> SELECT * FROM BKP_USUARIO;
++----------+-----------+---------+-------------+
+| IDBACKUP | IDUSUARIO | NOME    | LOGIN       |
++----------+-----------+---------+-------------+
+|        1 |         1 | ANDRADE | ANDRADE2009 |
++----------+-----------+---------+-------------+
+
+
+/* A 41 - COMUNICACAO ENTRE BANCOS */
+
+CREATE DATABASE LOJA;
+
+USE LOJA;
+
+CREATE TABLE PRODUTO(
+	IDPRODUTO INT PRIMARY KEY AUTO_INCREMENT,
+	NOME VARCHAR(30),
+	VALOR FLOAT(10,2)
+);
+
+CREATE DATABASE BACKUP;
+
+USE BACKUP;
+
+CREATE TABLE BKP_PRODUTO(
+	IDBKP INT PRIMARY KEY AUTO_INCREMENT,
+	IDPRODUTO INT,
+	NOME VARCHAR(30),
+	VALOR FLOAT(10,2)
+);
+
+USE LOJA;
+
+DELIMITER $
+-- TODA VEZ QUE UM PRODUTO É INSERIDO, É CRIADO UMA COPIA NO BANCO BACKUP
+/*
+	NESTE PRIMEIRO CASO, O DADO É INSERIDO NA TABELA BACKUP "BEFORE INSERT" OU SEJA, ANTES DE SER INSERIDO.. E O ID AINDA NAO FOI CRIADO
+*/
+CREATE TRIGGER BACKUP_PRODUT
+BEFORE INSERT ON PRODUTO
+FOR EACH ROW
+BEGIN
+	
+	INSERT INTO BACKUP.BKP_PRODUTO VALUES(NULL,NEW.IDPRODUTO,
+	NEW.NOME,NEW.VALOR);
+
+END
+$
+
+DELIMITER ;
+
+DELIMITER $
+-- TODA VEZ QUE É DELETADO UM PRODUTO, É INSERIDO NO BANCO BACKUP
+/*
+	NESTE CASO ESTAMOS PEGANDO ANTES DE DELETAR, MAS ESTAMOS PEGANDO O VALOR OLD.PRODUTO, OU SEJA, UM VALOR "VELHO", QUE JA FOI CRIADO
+*/
+
+CREATE TRIGGER BACKUP_PRODUTO_DEL
+BEFORE DELETE ON PRODUTO
+FOR EACH ROW
+BEGIN
+	
+	INSERT INTO BACKUP.BKP_PRODUTO VALUES(NULL,OLD.IDPRODUTO,
+	OLD.NOME,OLD.VALOR);
+
+END
+$
+
+DELIMITER ;
+
+DELETE FROM PRODUTO WHERE IDPRODUTO = 2;
+
+DROP TRIGGER BACKUP_PRODUT;
+
+DELIMITER $
+/*
+	ESTAMOS PEGANDO O VALOR "AFTER", OU SEJA DEPOIS QUE FOI INSERIDO, ENTAO JÁ TERA ID
+*/
+CREATE TRIGGER BACKUP_PRODUTO
+AFTER INSERT ON PRODUTO
+FOR EACH ROW
+BEGIN
+	
+	INSERT INTO BACKUP.BKP_PRODUTO VALUES(NULL,NEW.IDPRODUTO,
+	NEW.NOME,NEW.VALOR);
+
+END
+$
+
+DELIMITER ;
+
+INSERT INTO PRODUTO VALUES(NULL,'LIVRO C#',100.00);
+
+SELECT * FROM PRODUTO;
+SELECT * FROM BACKUP.BKP_PRODUTO;
+
+/*
+	RECAPITULANDO:
+		É PRECISO SABER ULTILIZAR CORRETAMENTE OLD/NEW/AFTER/BEFORE
+*/
+
+
+
+-- CRIANDO UM NOVO CAMPO NA TABELA BKP_PRODUTO, PARA INFORMAR O EVENTO EM QUE O DADO FOI INSERIDO
+DROP TRIGGER BACKUP_PRODUTO_DEL;
+
+ALTER TABLE BACKUP.BKP_PRODUTO
+ADD EVENTO CHAR(1);
+
+DELIMITER $
+
+CREATE TRIGGER BACKUP_PRODUTO_DEL
+BEFORE DELETE ON PRODUTO
+FOR EACH ROW
+BEGIN
+	
+	INSERT INTO BACKUP.BKP_PRODUTO VALUES(NULL,OLD.IDPRODUTO,
+	OLD.NOME,OLD.VALOR,'D');
+
+END
+$
+
+DELIMITER ;
+
+DELETE FROM PRODUTO WHERE IDPRODUTO = 4;
+SELECT * FROM BACKUP.BKP_PRODUTO;
+
++-------+-----------+------------------+--------+--------+
+| IDBKP | IDPRODUTO | NOME             | VALOR  | EVENTO |
++-------+-----------+------------------+--------+--------+
+|     1 |         0 | LIVRO MODELAGEM  |  50.00 | NULL   |
+|     2 |         0 | LIVRO BI         |  80.00 | NULL   |
+|     3 |         0 | LIVRO ORACLE     |  70.00 | NULL   |
+|     4 |         0 | LIVRO SQL SERVER | 100.00 | NULL   |
+|     5 |         2 | LIVRO BI         |  80.00 | NULL   |
+|     6 |         5 | LIVRO C#         | 100.00 | NULL   |
+|     7 |         4 | LIVRO SQL SERVER | 100.00 | D      |
++-------+-----------+------------------+--------+--------+
+
+
+
+/* A 43 - TRIGGER DE AUDITORIA */
+DELIMITER ;
+
+DROP DATABASE LOJA;
+
+DROP DATABASE BACKUP;
+
+CREATE DATABASE LOJA;
+
+USE LOJA;
+
+CREATE TABLE PRODUTO(
+	IDPRODUTO INT PRIMARY KEY AUTO_INCREMENT,
+	NOME VARCHAR(30),
+	VALOR FLOAT(10,2)
+);
+
+INSERT INTO PRODUTO VALUES(NULL,'LIVRO MODELAGEM',50.00);
+INSERT INTO PRODUTO VALUES(NULL,'LIVRO BI',80.00);
+INSERT INTO PRODUTO VALUES(NULL,'LIVRO ORACLE',70.00);
+INSERT INTO PRODUTO VALUES(NULL,'LIVRO SQL SERVER',100.00);
+
+/*QUANDO*/
+SELECT NOW();
+/*QUEM*/
+SELECT CURRENT_USER();
+
+CREATE DATABASE BACKUP;
+
+USE BACKUP;
+
+CREATE TABLE BKP_PRODUTO(
+	IDBACKUP INT PRIMARY KEY AUTO_INCREMENT,
+	IDPRODUTO INT,
+	NOME VARCHAR(30),
+	VALOR_ORIGINAL FLOAT(10,2),
+	VALOR_ALTERADO FLOAT(10,2),
+	DATA DATETIME,
+	USUARIO VARCHAR(30),
+	EVENTO CHAR(1)
+	
+);
+
+USE LOJA;
+
+SELECT * FROM PRODUTO;
+
+DELIMITER $
+
+CREATE TRIGGER AUDIT_PROD
+AFTER UPDATE ON PRODUTO
+FOR EACH ROW
+BEGIN
+
+	INSERT INTO BACKUP.BKP_PRODUTO VALUES(NULL,OLD.IDPRODUTO,OLD.NOME,
+	OLD.VALOR,NEW.VALOR,NOW(),CURRENT_USER(),'U');
+	
+END
+$
+
+DELIMITER ;
+
+UPDATE PRODUTO SET VALOR = 110.00
+WHERE IDPRODUTO = 4;
+
+SELECT * FROM PRODUTO;
+
+mysql> SELECT * FROM BACKUP.BKP_PRODUTO;
++----------+-----------+------------------+----------------+----------------+---------------------+----------------+--------+
+| IDBACKUP | IDPRODUTO | NOME             | VALOR_ORIGINAL | VALOR_ALTERADO | DATA                | USUARIO        | EVENTO |
++----------+-----------+------------------+----------------+----------------+---------------------+----------------+--------+
+|        1 |         4 | LIVRO SQL SERVER |         100.00 |         110.00 | 2024-05-15 19:35:58 | root@localhost | U      |
++----------+-----------+------------------+----------------+----------------+---------------------+----------------+--------+
+
+
+/* A44 - AUTORELACIONAMENTO */
+
+CREATE TABLE CURSOS(
+	IDCURSO INT PRIMARY KEY AUTO_INCREMENT,
+	NOME VARCHAR(30),
+	HORAS INT,
+	VALOR FLOAT(10,2),
+	ID_PREREQ INT
+);
+
+-- A CONTRAINT ABAIXO, ESTA CRIANDO UMA CONTRAINT PARA A TABELA CURSOS, E A CHAVE ESTRANGEIRA SERA ID_PREREQ, OU SEJA, ESTA INDICANDO QUE A CHAVE ESTRANGEIRA SERA UM DADO DA PRORIA TABELA, ASSIM, UMA LINHA DA TABELA PODE FAZER REFERENCIA A OUTRA LINHA DA MESMA TABELA
+ALTER TABLE CURSOS ADD CONSTRAINT FK_PREREQ
+FOREIGN KEY(ID_PREREQ) REFERENCES CURSOS(IDCURSO);
+
+INSERT INTO CURSOS VALUES(NULL,'BD RELACIONAL',20,400.00,NULL);
+INSERT INTO CURSOS VALUES(NULL,'BUSINESS INTELLIGENCE',40,800.00,1);
+INSERT INTO CURSOS VALUES(NULL,'RELATORIOS AVANCADOS',20,600.00,2);
+INSERT INTO CURSOS VALUES(NULL,'LOGICA PROGRAM',20,400.00,NULL);
+INSERT INTO CURSOS VALUES(NULL,'RUBY',30,500.00,4);
+
+SELECT * FROM CURSOS;
+SELECT NOME, VALOR, HORAS, IFNULL(ID_PREREQ,"SEM REQ") REQUISITO
+FROM CURSOS;
+
+
+
+--EXERCICIO
+/* NOME, VALOR, HORAS E O NOME DO PRE REQUISITO DO CURSO */
+
+SELECT 
+C.NOME AS CURSO, 
+C.VALOR AS VALOR, 
+C.HORAS AS CARGA, 
+IFNULL(P.NOME, "---") AS PREREQ
+FROM CURSOS C LEFT JOIN CURSOS P      -- A CLAUSULA LEFT JOIN, NESTE CASO, ESTA TRAZENDO TUDO DE CURSOS C E TMB O QUE TEM EM CURSOS P
+ON P.IDCURSO = C.ID_PREREQ;
+	   
++-----------------------+--------+-------+-----------------------+
+| CURSO                 | VALOR  | CARGA | PREREQ                |
++-----------------------+--------+-------+-----------------------+
+| BD RELACIONAL         | 400.00 |    20 | ---                   |
+| BUSINESS INTELLIGENCE | 800.00 |    40 | BD RELACIONAL         |
+| RELATORIOS AVANCADOS  | 600.00 |    20 | BUSINESS INTELLIGENCE |
+| LOGICA PROGRAM        | 400.00 |    20 | ---                   |
+| RUBY                  | 500.00 |    30 | LOGICA PROGRAM        |
++-----------------------+--------+-------+-----------------------+
+
+/*
+	CURSORES
+*/
+CREATE DATABASE CURSORES;
+USE CURSORES;
+
+CREATE TABLE VENDEDORES(
+	IDVENDEDOR INT PRIMARY KEY AUTO_INCREMENT,
+	NOME VARCHAR(50),
+	JAN INT,
+	FEV INT,
+	MAR INT
+);
+
+INSERT INTO VENDEDORES VALUES(NULL,'MAFRA',32432,242334,574545);
+INSERT INTO VENDEDORES VALUES(NULL,'CLARA',65465,65443,653454);
+INSERT INTO VENDEDORES VALUES(NULL,'JOAO',12432,65356,8756);
+INSERT INTO VENDEDORES VALUES(NULL,'LILIAN',4567,9676,8765);
+INSERT INTO VENDEDORES VALUES(NULL,'ANTONIO',3467,68756,99765);
+INSERT INTO VENDEDORES VALUES(NULL,'GLORIA',54786,76889,7098);
+
+SELECT * FROM VENDEDORES;
++------------+---------+-------+--------+--------+
+| IDVENDEDOR | NOME    | JAN   | FEV    | MAR    |
++------------+---------+-------+--------+--------+
+|          1 | MAFRA   | 32432 | 242334 | 574545 |
+|          2 | CLARA   | 65465 |  65443 | 653454 |
+|          3 | JOAO    | 12432 |  65356 |   8756 |
+|          4 | LILIAN  |  4567 |   9676 |   8765 |
+|          5 | ANTONIO |  3467 |  68756 |  99765 |
+|          6 | GLORIA  | 54786 |  76889 |   7098 |
++------------+---------+-------+--------+--------+
+
+SELECT NOME, (JAN+FEV+MAR) AS TOTAL FROM VENDEDORES;
+SELECT NOME, (JAN+FEV+MAR) AS TOTAL, (JAN+FEV+MAR)/3 AS MEDIA FROM VENDEDORES;
+
+CREATE TABLE VEND_TOTAL(
+	NOME VARCHAR(50),
+	JAN INT,
+	FEV INT,
+	MAR INT,
+	TOTAL INT,
+	MEDIA INT
+);
+
+DELIMITER $
+
+CREATE PROCEDURE INSEREDADOS()
+BEGIN
+		DECLARE FIM INT DEFAULT 0;
+		DECLARE VAR1, VAR2, VAR3, VTOTAL, VMEDIA INT;
+		DECLARE VNOME VARCHAR(50);
+		
+		DECLARE REG CURSOR FOR(
+			SELECT NOME, JAN, FEV, MAR FROM VENDEDORES
+		);
+		
+		DECLARE CONTINUE HANDLER FOR NOT FOUND SET FIM = 1;
+		
+		OPEN REG;
+		
+		REPEAT
+		
+			FETCH REG INTO VNOME, VAR1, VAR2, VAR3;
+			IF NOT FIM THEN
+			
+				SET VTOTAL = VAR1 + VAR2 + VAR3;
+				SET VMEDIA = VTOTAL / 3;
+				
+				INSERT INTO VEND_TOTAL VALUES(VNOME,VAR1,VAR2,VAR3,VTOTAL,VMEDIA);
+				
+			END IF;
+			
+		UNTIL FIM END REPEAT;
+		
+		CLOSE REG;
+END
+$
+
+DELIMITER ;
+
+SELECT * FROM VENDEDORES;
+SELECT * FROM VEND_TOTAL;
+
+DELETE FROM VEND_TOTAL;
+
+CALL INSEREDADOS();
+
+
+/* A47 SEGUNDA E TERCEIRAS FORMAS NORMAIS */
+
+/*
+	-- PRIMEIRA FN
+	 
+	 ATOMICIDADE - UM CAMPO NAO PODE SER DIVISIVEL
+	 UM CAMPO NAO PODE SER VETORIZADO
+	 PK CHAVE PRIMARIA
+
+*/
+
+CREATE DATABASE CONSULTORIO;
+
+USE CONSULTORIO;
+
+CREATE TABLE PACIENTE(
+	IDPACIENTE INT PRIMARY KEY AUTO_INCREMENT,
+	NOME VARCHAR(30),
+	SEXO CHAR(1),
+	EMAIL VARCHAR(30),
+	NASCIMENTO DATE
+);
+
+CREATE TABLE MEDICO(
+	IDMEDICO INT PRIMARY KEY AUTO_INCREMENT,
+	NOME VARCHAR(30),
+	SEXO CHAR(1),
+	ESPECIALIDADE VARCHAR(30),
+	FUNCIONARIO ENUM('S','N')
+);
+
+CREATE TABLE HOSPITAL(
+	IDHOSPITAL INT PRIMARY KEY AUTO_INCREMENT,
+	NOME VARCHAR(30),
+	BAIRRO VARCHAR(30),
+	CIDADE VARCHAR(30),
+	ESTADO CHAR(2)
+);
+
+CREATE TABLE CONSULTA(
+	IDCONSULTA INT PRIMARY KEY AUTO_INCREMENT,
+	ID_PACIENTE INT,
+	ID_MEDICO INT,
+	ID_HOSPITAL INT,
+	DATA DATETIME,
+	DIAGNOSTICO VARCHAR(50)
+);
+
+CREATE TABLE INTERNACAO(
+	IDINTERNACAO INT PRIMARY KEY AUTO_INCREMENT,
+	ENTRADA DATETIME,
+	QUARTO INT,
+	SAIDA DATETIME,
+	OBSERVACOES VARCHAR(50),
+	ID_CONSULTA INT UNIQUE	
+);  
+
+ALTER TABLE CONSULTA
+ADD CONSTRAINT FK_CONSULTA_PACIENTE
+FOREIGN KEY(ID_PACIENTE)
+REFERENCES PACIENTE(IDPACIENTE);
+
+ALTER TABLE CONSULTA
+ADD CONSTRAINT FK_CONSULTA_MEDICO
+FOREIGN KEY(ID_MEDICO)
+REFERENCES MEDICO(IDMEDICO);
+
+ALTER TABLE CONSULTA
+ADD CONSTRAINT FK_CONSULTA_HOSPITAL
+FOREIGN KEY(ID_HOSPITAL)
+REFERENCES HOSPITAL(IDHOSPITAL);
+
+ALTER TABLE INTERNACAO
+ADD CONSTRAINT FK_INTERNACAO_CONSULTA
+FOREIGN KEY(ID_CONSULTA)
+REFERENCES CONSULTA(IDCONSULTA);
